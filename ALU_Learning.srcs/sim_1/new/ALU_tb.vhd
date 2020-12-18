@@ -65,7 +65,11 @@ report "Test Magnitude Comparator";
 input_a <= X"67";
 input_b <= X"58";
 opcode <= "011";
+wait for 100 ns;
 
+report "Test Logical Left Shift";
+input_a <= X"15";
+opcode <= "100";
 
 wait;
 

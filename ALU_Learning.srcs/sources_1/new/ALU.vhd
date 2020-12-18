@@ -28,8 +28,9 @@ end ALU;
 
 architecture Behavioral of ALU is
 
-    signal add_en, sub_en, equal_en, mag_en : STD_LOGIC := '0';
-    signal status_add, status_equ, status_mag : STD_LOGIC;
+    signal add_en, sub_en, equal_en, mag_en, shift_l_en : STD_LOGIC := '0'; -- Module enable signals
+    signal status_add, status_equ, status_mag : STD_LOGIC; -- Module flag signals
+    signal result_add, result_shift_l : STD_LOGIC_VECTOR(7 downto 0); -- Module result signals
 
 begin
 
@@ -40,7 +41,7 @@ adder_8bit_inst : entity work.adder_8bit PORT MAP (
     input_a => input_a,
     input_b => input_b,
     
-    output => result,
+    output => result_add,
     carry_out => status_add
 );
 
@@ -60,13 +61,22 @@ magnitude_comparator_isnt : entity work.magnitude_comparator PORT MAP(
     data_o => status_mag
 );
 
+logic_shift_left_inst : entity work.logic_shift_left PORT MAP(
+    clk => clk,
+    enable => shift_l_en,
+    input_a => input_a,
+    data_o => result_shift_l
+);
+
 process(clk) begin 
 if rising_edge(clk) then
     case(opcode) is
-        when B"000" => add_en <= '1'; sub_en <= '0'; equal_en <= '0'; mag_en <= '0';
-        when B"001" => add_en <= '1'; sub_en <= '1'; equal_en <= '0'; mag_en <= '0'; -- Use adder and subtractor
-        when B"010" => equal_en <= '1'; add_en <= '0'; sub_en <= '0'; mag_en <= '0';
-        when B"011" => mag_en <= '1'; add_en <= '0'; sub_en <= '0'; equal_en <= '0';
+        -- There's probably a better way to do this
+        when B"000" => add_en <= '1'; sub_en <= '0'; equal_en <= '0'; mag_en <= '0'; shift_l_en <= '0';
+        when B"001" => add_en <= '1'; sub_en <= '1'; equal_en <= '0'; mag_en <= '0'; shift_l_en <= '0';-- Use adder and subtractor
+        when B"010" => equal_en <= '1'; add_en <= '0'; sub_en <= '0'; mag_en <= '0'; shift_l_en <= '0';
+        when B"011" => mag_en <= '1'; add_en <= '0'; sub_en <= '0'; equal_en <= '0'; shift_l_en <= '0';
+        when B"100" => shift_l_en <= '1'; mag_en <= '0'; add_en <= '0'; sub_en <= '0'; equal_en <= '0';
         when others => 
     end case;
     
@@ -74,9 +84,14 @@ if rising_edge(clk) then
     if add_en = '1' then status_flag <= status_add;
     elsif sub_en = '1' then status_flag <= not status_add; -- Reusing adder for subtracting; Flag is inverted to represent borrow bit
     elsif equal_en = '1' then status_flag <= status_equ; 
-    elsif mag_en = '1' then status_flag <= status_mag; end if;
+    elsif mag_en = '1' then status_flag <= status_mag; 
+    else status_flag <= '0'; end if;
     
     -- Choose data for result
+    if add_en = '1' then result <= result_add;
+    elsif sub_en = '1' then result <= result_add;
+    elsif shift_l_en = '1' then result <= result_shift_l;
+    else result <= (others => '0'); end if;
     
 end if;
 end process; 
