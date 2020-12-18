@@ -1,7 +1,7 @@
 # tiny_ALU
 
-A simple 8 bit Arthimetic Logic Unit (ALU) for the purposes of learning. The ALU currently only has functionality for addition, subtraction, equal and magnitude comparison. 
-See ALU_tb for simulation. Haven't synthesized yet.
+A simple and from first principles 8 bit Arthimetic Logic Unit (ALU) for the purposes of learning. The ALU currently only has functionality for addition, subtraction, equal and magnitude comparison and logical left shift. 
+See ALU_tb for simulation results. Haven't synthesized yet.
 
 ## Wishlist / TODO
 
